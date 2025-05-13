@@ -6,7 +6,6 @@ Crops a TIFF image based on a GeoJSON parcel and generates segmentation masks
 using the Segment Anything Model (SAM).
 """
 
-import argparse
 import os
 import numpy as np
 import rasterio
@@ -14,6 +13,7 @@ from rasterio.mask import mask as rio_mask # Renamed to avoid conflict with loca
 import geopandas as gpd
 from segment_anything import SamAutomaticMaskGenerator, sam_model_registry
 from PIL import Image # For saving masks
+import random # Added for random color generation
 
 # --- Helper Functions ---
 
@@ -139,7 +139,7 @@ def crop_raster_to_parcel(raster_path, parcel_gdf):
 
 def generate_and_save_sam_masks(image_rgb_uint8, model_type, checkpoint_path, output_dir):
     """
-    Generates masks using SAM and saves them.
+    Generates masks using SAM and saves them as a single composite image.
     """
     try:
         print(f"Loading SAM model: {model_type} from {checkpoint_path}")
@@ -157,16 +157,36 @@ def generate_and_save_sam_masks(image_rgb_uint8, model_type, checkpoint_path, ou
         print(f"Generated {len(masks_sam)} masks.")
         os.makedirs(output_dir, exist_ok=True)
 
+        # Create a copy of the original image to draw masks on
+        overlay_image_pil = Image.fromarray(image_rgb_uint8).convert("RGBA")
+
         for i, mask_data in enumerate(masks_sam):
             # mask_data['segmentation'] is a boolean HxW array
             mask_bool_array = mask_data['segmentation']
-            mask_saveable_img = (mask_bool_array * 255).astype(np.uint8) # Convert boolean to 0/255 image
             
-            pil_img = Image.fromarray(mask_saveable_img)
-            mask_filename = os.path.join(output_dir, f"mask_{i+1:04d}.png")
-            pil_img.save(mask_filename)
+            # Generate a random color for this mask (R, G, B, A)
+            # Make alpha semi-transparent to see through overlaps
+            random_color = (random.randint(0, 255), random.randint(0, 255), random.randint(0, 255), 128) 
+            
+            # Create an image for the current mask
+            mask_color_pil = Image.new("RGBA", overlay_image_pil.size)
+            mask_pixels = mask_color_pil.load()
+
+            for y in range(mask_bool_array.shape[0]): # height
+                for x in range(mask_bool_array.shape[1]): # width
+                    if mask_bool_array[y, x]:
+                        mask_pixels[x, y] = random_color
+            
+            # Alpha composite the current mask onto the overlay image
+            overlay_image_pil = Image.alpha_composite(overlay_image_pil, mask_color_pil)
         
-        print(f"All masks saved in {output_dir}")
+        # Convert back to RGB before saving if you don't want alpha in the final PNG,
+        # or save as RGBA
+        final_image_to_save = overlay_image_pil.convert("RGB") 
+        composite_mask_filename = os.path.join(output_dir, "composite_mask_overlay.png")
+        final_image_to_save.save(composite_mask_filename)
+        
+        print(f"Composite mask overlay saved to {composite_mask_filename}")
 
     except FileNotFoundError:
         print(f"ERROR: SAM checkpoint file not found at {checkpoint_path}")

@@ -2,3 +2,4 @@
 /scripts/__pycache__
 .DS_Store
 /models/*
+/output_sam_masks/*
