@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
-"""
-Point Cloud Processing Script: Colorization and Visualization
 
+"""
+Point Cloud Processing Script: Colorization
 This script provides functionalities to:
 1. Colorize a LAZ/LAS point cloud using satellite imagery.
-2. Visualize LAZ/LAS point cloud files using PyVista.
-3. Generate a mesh from a point cloud.
 """
 
 import os
@@ -23,17 +21,6 @@ except ImportError:
     print("ERROR: laspy could not be imported.")
     print("Please install laspy: pip install laspy lazrs")
     sys.exit(1)
-
-# Try to import PyVista for visualization
-VISUALIZATION_LIB = None
-try:
-    import pyvista as pv
-
-    VISUALIZATION_LIB = "pyvista"
-except ImportError:
-    print("WARNING: PyVista could not be imported.")
-    print("Visualization and mesh generation will not be available.")
-    print("Please install PyVista: pip install pyvista")
 
 
 # --- Point Cloud and Satellite Image Loading ---
@@ -355,188 +342,49 @@ def save_colorized_point_cloud(input_las_data, colors, output_path):
     colorized_las.write(output_path)
 
 
-# --- Visualization Functions ---
-def visualize_with_pyvista(las_data, window_title="Point Cloud Viewer"):
-    """
-    Visualize point cloud with PyVista.
-    """
-    if VISUALIZATION_LIB != "pyvista":
-        print("PyVista not available or not selected.")
-        return
-
-    points = np.vstack((las_data.x, las_data.y, las_data.z)).T
-    cloud = pv.PolyData(points)
-
-    plotter = pv.Plotter(window_size=[1024, 768], title=window_title)
-
-    if (
-        hasattr(las_data, "red")
-        and hasattr(las_data, "green")
-        and hasattr(las_data, "blue")
-    ):
-        # Scale 16-bit colors (0-65535) to 8-bit (0-255) for PyVista's RGB
-        r_8bit = np.round(las_data.red / 65535.0 * 255).astype(np.uint8)
-        g_8bit = np.round(las_data.green / 65535.0 * 255).astype(np.uint8)
-        b_8bit = np.round(las_data.blue / 65535.0 * 255).astype(np.uint8)
-
-        rgb_colors_uint8 = np.vstack((r_8bit, g_8bit, b_8bit)).T
-
-        plotter.add_points(
-            cloud,
-            scalars=rgb_colors_uint8,
-            rgb=True,
-            render_points_as_spheres=True,
-            point_size=3,
-        )
-    else:
-        plotter.add_points(cloud, render_points_as_spheres=True, point_size=3)
-
-    plotter.add_axes()
-    plotter.set_background([0.1, 0.1, 0.1])
-
-    plotter.show()
-
-
-# --- Mesh Generation Function ---
-def generate_mesh_from_point_cloud(point_cloud_path, output_mesh_path):
-    """
-    Generates a mesh from a point cloud using PyVista.
-    """
-    if not pv:  # Check if pv (PyVista) was imported
-        print("PyVista is required for mesh generation. Please install PyVista.")
-        try:
-            import pyvista as pv_local
-        except ImportError:
-            print("Failed to import PyVista for mesh generation.")
-            return
-    else:
-        pv_local = pv  # Use the globally imported pv
-
-    try:
-        las_data = load_point_cloud(point_cloud_path)  # Use our loader
-        points = np.vstack((las_data.x, las_data.y, las_data.z)).transpose()
-        pv_cloud = pv_local.PointCloud(points)
-
-        if (
-            hasattr(las_data, "red")
-            and hasattr(las_data, "green")
-            and hasattr(las_data, "blue")
-        ):
-            red = np.round(las_data.red / 65535.0 * 255).astype(np.uint8)
-            green = np.round(las_data.green / 65535.0 * 255).astype(np.uint8)
-            blue = np.round(las_data.blue / 65535.0 * 255).astype(np.uint8)
-            pv_cloud.point_data["colors"] = np.vstack((red, green, blue)).transpose()
-            pv_cloud.active_scalars_name = "colors"
-
-        # Note: Delaunay 3D might not be suitable for all point clouds (e.g., non-convex, noisy)
-        # Other methods like pv.reconstruct_surface() (Poisson) could be alternatives but have more dependencies.
-        surf = pv_cloud.delaunay_3d().extract_surface()
-
-        if surf.n_points == 0 or surf.n_cells == 0:
-            print(
-                "Mesh generation resulted in an empty mesh. This can happen if the point cloud is too sparse or planar for Delaunay 3D."
-            )
-            print(
-                "Consider trying a different meshing algorithm or checking point cloud density."
-            )
-            return
-
-        surf.save(output_mesh_path, binary=True)
-
-    except Exception as e:
-        print(f"Error generating mesh: {str(e)}")
-        import traceback
-
-        traceback.print_exc()
-
-
 # --- Argument Parsing ---
 def parse_arguments():
     """Parse command line arguments."""
     parser = argparse.ArgumentParser(
-        description="Process point clouds: colorize with satellite imagery and/or visualize.",
+        description="Colorize point clouds with satellite imagery.",
         formatter_class=argparse.RawTextHelpFormatter,
     )
 
-    subparsers = parser.add_subparsers(
-        dest="mode", required=True, help="Mode of operation"
-    )
-
-    # Visualize mode
-    parser_visualize = subparsers.add_parser(
-        "visualize", help="Visualize an existing point cloud file."
-    )
-    parser_visualize.add_argument(
-        "--file",
-        "-f",
-        type=str,
-        required=True,
-        help="Path to the point cloud file (LAZ/LAS) to visualize.",
-    )
-    parser_visualize.add_argument(
-        "--lib",
-        type=str,
-        choices=["pyvista"],
-        default=VISUALIZATION_LIB,
-        help=f"Preferred visualization library (default: {VISUALIZATION_LIB if VISUALIZATION_LIB else 'auto-detect'}). Only PyVista is currently supported.",
-    )
-
-    # Colorize mode
-    parser_colorize = subparsers.add_parser(
-        "colorize", help="Colorize a point cloud using satellite imagery."
-    )
-    parser_colorize.add_argument(
+    # Only colorize mode is needed now
+    parser.add_argument(
         "--input_pc",
         type=str,
         required=True,
         help="Path to the input point cloud file (LAZ/LAS).",
     )
-    parser_colorize.add_argument(
+    parser.add_argument(
         "--input_sat",
         type=str,
         required=True,
         help="Path to the satellite image file (e.g., GeoTIFF).",
     )
-    parser_colorize.add_argument(
+    parser.add_argument(
         "--output_pc",
         type=str,
         required=True,
         help="Path to save the colorized point cloud file (LAZ/LAS).",
     )
-    parser_colorize.add_argument(
+    parser.add_argument(
         "--use_custom_transform",
         action="store_true",
         help="Use the fallback custom transformation (bounds scaling) instead of pyproj or if pyproj fails.",
     )
-    parser_colorize.add_argument(
+    parser.add_argument(
         "--x_offset",
         type=float,
         default=0.0,
         help="Apply a manual X offset (in the satellite image CRS units) to the point cloud coordinates before color sampling. Positive values typically shift sampling eastward.",
     )
-    parser_colorize.add_argument(
+    parser.add_argument(
         "--y_offset",
         type=float,
         default=0.0,
         help="Apply a manual Y offset (in the satellite image CRS units) to the point cloud coordinates before color sampling. Positive values typically shift sampling northward.",
-    )
-    parser_colorize.add_argument(
-        "--generate_mesh",
-        type=str,
-        default=None,
-        help="Optional: Path to save a generated mesh (e.g., .ply, .stl) from the colorized point cloud. Requires PyVista.",
-    )
-    parser_colorize.add_argument(
-        "--visualize_result",
-        action="store_true",
-        help="Visualize the colorized point cloud after processing.",
-    )
-    parser_colorize.add_argument(
-        "--vis_lib_after_colorize",
-        type=str,
-        choices=["pyvista"],
-        default=VISUALIZATION_LIB,
-        help=f"Preferred visualization library for '--visualize_result' (default: {VISUALIZATION_LIB if VISUALIZATION_LIB else 'auto-detect'}). Only PyVista is currently supported.",
     )
 
     return parser.parse_args()
@@ -547,111 +395,51 @@ def main():
     args = parse_arguments()
     script_dir = os.path.dirname(os.path.abspath(__file__))
 
-    global VISUALIZATION_LIB  # Allow modification if user specifies a lib
+    # Simplified to only handle colorization
+    input_pc_path = (
+        args.input_pc
+        if os.path.isabs(args.input_pc)
+        else os.path.join(script_dir, args.input_pc)
+    )
+    input_sat_path = (
+        args.input_sat
+        if os.path.isabs(args.input_sat)
+        else os.path.join(script_dir, args.input_sat)
+    )
+    output_pc_path = (
+        args.output_pc
+        if os.path.isabs(args.output_pc)
+        else os.path.join(script_dir, args.output_pc)
+    )
 
-    if args.mode == "visualize":
-        if not VISUALIZATION_LIB and not args.lib:
-            print("No visualization library available or specified. Cannot visualize.")
-            return 1
-        if args.lib:  # User specified a library
-            if args.lib == "pyvista" and pv:
-                VISUALIZATION_LIB = "pyvista"
-            elif args.lib == "pyvista" and not pv:
-                print("PyVista specified but not available. Please install PyVista.")
-                return 1
-            else:  # Should not happen with current choices
-                print(f"Unsupported library specified: {args.lib}")
-                return 1
-        elif not VISUALIZATION_LIB and pv:  # Auto-detect if not specified
-            VISUALIZATION_LIB = "pyvista"
+    las_data = load_point_cloud(input_pc_path)
+    raster_dataset = load_satellite_image(input_sat_path)
 
-        pc_path = (
-            args.file
-            if os.path.isabs(args.file)
-            else os.path.join(script_dir, args.file)
+    custom_transform_to_use = None
+    if args.use_custom_transform:
+        custom_transform_to_use = define_custom_transform()
+
+    pixel_x, pixel_y, valid_points = convert_point_cloud_to_image_coordinates(
+        las_data,
+        raster_dataset,
+        custom_transform_to_use,
+        args.x_offset,
+        args.y_offset,
+    )
+
+    if np.sum(valid_points) == 0:
+        print(
+            "Colorization cannot proceed as no points are within the image bounds."
         )
-        las_data = load_point_cloud(pc_path)
-
-        if VISUALIZATION_LIB == "pyvista":
-            visualize_with_pyvista(
-                las_data, window_title=f"Visualize: {os.path.basename(pc_path)}"
-            )
-        else:
-            print(f"PyVista is not available. Cannot visualize.")
-            return 1
-
-    elif args.mode == "colorize":
-        input_pc_path = (
-            args.input_pc
-            if os.path.isabs(args.input_pc)
-            else os.path.join(script_dir, args.input_pc)
-        )
-        input_sat_path = (
-            args.input_sat
-            if os.path.isabs(args.input_sat)
-            else os.path.join(script_dir, args.input_sat)
-        )
-        output_pc_path = (
-            args.output_pc
-            if os.path.isabs(args.output_pc)
-            else os.path.join(script_dir, args.output_pc)
-        )
-
-        las_data = load_point_cloud(input_pc_path)
-        raster_dataset = load_satellite_image(input_sat_path)
-
-        custom_transform_to_use = None
-        if args.use_custom_transform:
-            custom_transform_to_use = define_custom_transform()
-
-        pixel_x, pixel_y, valid_points = convert_point_cloud_to_image_coordinates(
-            las_data,
-            raster_dataset,
-            custom_transform_to_use,
-            args.x_offset,
-            args.y_offset,
-        )
-
-        if np.sum(valid_points) == 0:
-            print(
-                "Colorization cannot proceed as no points are within the image bounds."
-            )
-            raster_dataset.close()
-            return 1
-
-        colors = extract_colors_from_image(
-            raster_dataset, pixel_x, pixel_y, valid_points
-        )
-        save_colorized_point_cloud(las_data, colors, output_pc_path)
         raster_dataset.close()
+        return 1
 
-        if args.generate_mesh:
-            output_mesh_filepath = (
-                args.generate_mesh
-                if os.path.isabs(args.generate_mesh)
-                else os.path.join(script_dir, args.generate_mesh)
-            )
-            generate_mesh_from_point_cloud(output_pc_path, output_mesh_filepath)
-
-        if args.visualize_result:
-            if not VISUALIZATION_LIB and not args.vis_lib_after_colorize:
-                print(
-                    "No visualization library available or specified. Cannot visualize result."
-                )
-            else:
-                if args.vis_lib_after_colorize:
-                    VISUALIZATION_LIB = args.vis_lib_after_colorize
-                elif not VISUALIZATION_LIB and pv:  # Auto-detect if not specified
-                    VISUALIZATION_LIB = "pyvista"
-
-                colorized_las_data = load_point_cloud(output_pc_path)
-                if VISUALIZATION_LIB == "pyvista":
-                    visualize_with_pyvista(
-                        colorized_las_data,
-                        window_title=f"Colorized: {os.path.basename(output_pc_path)}",
-                    )
-                else:
-                    print(f"PyVista is not available for visualizing the result.")
+    colors = extract_colors_from_image(
+        raster_dataset, pixel_x, pixel_y, valid_points
+    )
+    save_colorized_point_cloud(las_data, colors, output_pc_path)
+    print(f"Colorized point cloud saved to: {output_pc_path}")
+    raster_dataset.close()
 
     return 0
 
