@@ -1,3 +1,4 @@
 /data/boulder_flyover
 /scripts/__pycache__
 .DS_Store
+/models/*
