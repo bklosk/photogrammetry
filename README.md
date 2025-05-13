@@ -1,4 +1,5 @@
-#  PhotogrammeTree 🌲➡️🌳 Climate Disaster Mitigation 🌍
+#  Photogrammetree 🌳 
+## Climate Disaster Mitigation 🌍
 
 This project uses **LiDAR** data 🛰️ and **orthophotos** 📸 combined with **3D semantic segmentation** 🤖 and FEA/FDS to identify and analyze mutable candidates for climate risk mitigation.
 
@@ -37,6 +38,59 @@ For example, we could:
 5.  **Visualization & Reporting:**
     *   Visualize the results in 3D.
     *   Generate reports for decision-making.
+
+---
+
+## Project Setup and Execution
+
+### Prerequisites
+
+- Python 3.10 or higher
+- Git (for cloning the repository, if applicable)
+
+### Setup in a GitHub Codespace or Local Environment
+
+1.  **Clone the repository (if you haven't already):**
+    ```bash
+    git clone <repository-url>
+    cd photogrammetry
+    ```
+
+2.  **Create and activate a Python virtual environment:**
+    It's highly recommended to use a virtual environment to manage project dependencies.
+    ```bash
+    python3 -m venv venv
+    source venv/bin/activate
+    ```
+    (On Windows, use `venv\Scripts\activate`)
+
+3.  **Install Python dependencies:**
+    The required Python packages are listed in `requirements.txt`.
+    ```bash
+    pip install -r requirements.txt
+    ```
+
+### Running the Pipeline
+
+The main pipeline script is `scripts/pipeline.py`. This script processes a hardcoded point cloud and visualizes the output.
+
+To run the pipeline:
+
+1.  **Ensure your virtual environment is activated.**
+2.  **Navigate to the `scripts` directory (optional, but paths in the script are relative to its location):**
+    ```bash
+    cd scripts
+    ```
+3.  **Execute the pipeline script:**
+    ```bash
+    python pipeline.py
+    ```
+    If you are in the root directory of the project, you can run it as:
+    ```bash
+    python scripts/pipeline.py
+    ```
+
+A PyVista window should open to display the colorized point cloud. Close the PyVista window to allow the script to terminate.
 
 ---
 
