@@ -1,14 +1,15 @@
-#  LiDAR & Orthophoto 🌲➡️🌳 Climate Risk Mitigation Project 🌍
+#  PhotogrammeTree 🌲➡️🌳 Climate Disaster Mitigation 🌍
 
-This project explores the use of **LiDAR** data 🛰️ and **orthophotos** 📸 combined with **3D semantic segmentation** 🤖 to identify and analyze mutable candidates for climate risk mitigation.
+This project uses **LiDAR** data 🛰️ and **orthophotos** 📸 combined with **3D semantic segmentation** 🤖 and FEA/FDS to identify and analyze mutable candidates for climate risk mitigation.
 
 ## The Goal 🎯
 
 Our aim is to pinpoint specific areas or objects within a 3D environment (e.g., vegetation, buildings, infrastructure) that can be modified or managed to reduce climate-related risks like flooding, heat islands, or wildfire spread.
 
 For example, we could:
-*   Identify areas where planting new trees 🌲 or restoring vegetation can have the most impact.
-*   Detect rooftops suitable for green roofs 🌿 or solar panel installations ☀️.
+*   Identify vegetation likely to be a vector for fire spread to buildings.
+*   Find optimal placements for floodwalls, sandbags, or home risers.
+*   Detect rooftops suitable for conversion to steel roofs 🌿 or solar panel installations ☀️.
 *   Assess infrastructure vulnerabilities that need reinforcement.
 
 ## Technologies 🛠️
@@ -29,7 +30,11 @@ For example, we could:
     *   Develop algorithms to analyze the segmented point cloud.
     *   Identify "mutable" objects/areas based on their class and properties.
     *   Evaluate their potential for climate risk mitigation.
-4.  **Visualization & Reporting:**
+4.  **Physics-Based Simulation & ML Analysis 🌪️🔥🌊:**
+    *   Run Finite Element Analysis (FEA) and Fire Dynamics Simulator (FDS) simulations on the segmented point cloud.
+    *   Simulate physical phenomena like fires, floods, and high winds.
+    *   Utilize Machine Learning to analyze simulation results and refine mitigation strategies.
+5.  **Visualization & Reporting:**
     *   Visualize the results in 3D.
     *   Generate reports for decision-making.
 
