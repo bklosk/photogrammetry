@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the path to the virtual environment
-VENV_PATH="./venv"
+VENV_PATH="../venv" # Adjusted path
 
 # Check if python3.12 command is available
 if ! command -v python3.12 &> /dev/null
@@ -31,7 +31,7 @@ source "$VENV_PATH/bin/activate"
 echo "Virtual environment activated."
 
 # Define the path to your Python script
-SCRIPT_PATH="./process_point_cloud.py"
+SCRIPT_PATH="./process_point_cloud.py" # Script is now in the same directory
 
 # Check if the Python script exists
 if [ ! -f "$SCRIPT_PATH" ]; then
@@ -43,22 +43,22 @@ fi
 # Run the colorize command
 echo "Running colorization..."
 python "$SCRIPT_PATH" colorize \
-    --input_pc point_cloud.laz \
-    --input_sat boulder_flyover/images/n2w235.tif \
-    --output_pc colorized_point_cloud.laz \
+    --input_pc ../data/point_cloud.laz \
+    --input_sat ../data/boulder_flyover/images/n2w235.tif \
+    --output_pc ../data/colorized_point_cloud.laz \
     --x_offset -2 \
     --y_offset 0
 
 # Check if colorization was successful (basic check: output file exists)
-if [ ! -f "colorized_point_cloud.laz" ]; then
-    echo "Colorization failed or output file 'colorized_point_cloud.laz' not found."
+if [ ! -f "../data/colorized_point_cloud.laz" ]; then # Adjusted path
+    echo "Colorization failed or output file '../data/colorized_point_cloud.laz' not found." # Adjusted path
     deactivate
     exit 1
 fi
 
 # Run the visualize command
 echo "Running visualization..."
-python "$SCRIPT_PATH" visualize --file colorized_point_cloud.laz
+python "$SCRIPT_PATH" visualize --file ../data/colorized_point_cloud.laz # Adjusted path
 
 # Deactivate the virtual environment (optional, as it deactivates on script exit)
 # deactivate

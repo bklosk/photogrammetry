@@ -37,7 +37,7 @@ def load_point_cloud_from_laz(laz_file_path):
 
 
 def main():
-    laz_file = "colorized_point_cloud.laz"  # Input file as per prompt
+    laz_file = "../data/colorized_point_cloud.laz"  # Input file as per prompt # Adjusted path
     points_np, colors_np = load_point_cloud_from_laz(laz_file)
 
     if points_np is None:
