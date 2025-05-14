@@ -3,3 +3,5 @@
 .DS_Store
 /models/*
 /output_sam_masks/*
+/sam2/*
+/checkpoints/*

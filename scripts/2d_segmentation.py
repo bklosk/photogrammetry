@@ -11,7 +11,7 @@ import numpy as np
 import rasterio
 from rasterio.mask import mask as rio_mask # Renamed to avoid conflict with local 'mask' variables
 import geopandas as gpd
-from segment_anything import SamAutomaticMaskGenerator, sam_model_registry
+from sam2 import SAM2AutomaticMaskGenerator, sam2_model_registry # Updated import
 from PIL import Image # For saving masks
 import random # Added for random color generation
 
@@ -144,8 +144,8 @@ def generate_and_save_sam_masks(image_rgb_uint8, model_type, checkpoint_path, ou
     try:
         print(f"Loading SAM model: {model_type} from {checkpoint_path}")
         # SAM will attempt to use CUDA if available, otherwise CPU.
-        sam = sam_model_registry[model_type](checkpoint=checkpoint_path)
-        mask_generator = SamAutomaticMaskGenerator(sam)
+        sam = sam2_model_registry[model_type](checkpoint=checkpoint_path) # Use sam2_model_registry
+        mask_generator = SAM2AutomaticMaskGenerator(sam) # Use SAM2AutomaticMaskGenerator
 
         print("Generating masks with SAM (this may take a while)...")
         masks_sam = mask_generator.generate(image_rgb_uint8) # image_rgb_uint8 should be HxWxC, RGB, uint8
@@ -202,9 +202,9 @@ def main():
     # Hardcoded paths
     tif_image_path = "/workspaces/photogrammetry/data/boulder_flyover/images/n2w235.tif"
     geojson_parcel_path = "/workspaces/photogrammetry/data/boulder_flyover/metadata/parcel.geojson"
-    sam_model_type = "vit_b"  # Example model type
+    sam_model_type = "hiera_t"  # Updated SAM2 model type (e.g., hiera_t, hiera_s, hiera_b+, hiera_l)
     # IMPORTANT: Update this path to your actual SAM checkpoint file
-    sam_checkpoint_path = "/workspaces/photogrammetry/models/sam_vit_b_01ec64.pth" 
+    sam_checkpoint_path = "/workspaces/photogrammetry/sam2/checkpoints/sam2.1_hiera_tiny.pt" # Updated SAM2 checkpoint path
     output_dir_path = "/workspaces/photogrammetry/output_sam_masks"
 
     print("Starting 2D segmentation process...")
