@@ -3,3 +3,4 @@ lazrs
 rasterio
 pyvista
 pyproj
+open3d
