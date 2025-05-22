@@ -4,3 +4,5 @@ rasterio
 pyvista
 pyproj
 open3d
+scipy
+tqdm
