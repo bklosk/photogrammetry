@@ -6,7 +6,9 @@ import open3d as o3d
 laz_file = laspy.read("/workspaces/photogrammetry/data/colorized_point_cloud.laz")
 
 # Extract points and colors
-points = np.vstack((laz_file.x, laz_file.y, laz_file.z)).transpose()
+points = np.vstack(
+    (laz_file.x, laz_file.z, laz_file.y)
+).transpose()  # Swapped y and z to align elevation with Open3D's Y-up convention
 colors = (
     np.vstack((laz_file.red, laz_file.green, laz_file.blue)).transpose() / 255.0
 )  # Normalize colors to [0, 1]
