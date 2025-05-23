@@ -6,3 +6,5 @@ pyproj
 open3d
 scipy
 tqdm
+landlab
+matplotlib
