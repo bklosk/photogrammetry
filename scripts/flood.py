@@ -109,25 +109,22 @@ def extrude_water_to_voxels(water_depths, topography, occ, vox_sz, min_xyz):
     return water_voxels
 
 
-def create_colored_voxel_grid(occ, water_voxels, vox_sz, min_xyz):
-    """Create colored voxel grid with buildings and water"""
-    voxel_grid = o3d.geometry.VoxelGrid()
-    voxel_grid.voxel_size = vox_sz
-    voxel_grid.origin = min_xyz
+def create_colored_voxel_grid(original_voxel_grid, water_voxels, vox_sz, min_xyz):
+    """Create colored voxel grid preserving original colors and adding water"""
+    # Start with a copy of the original voxel grid to preserve colors
+    colored_voxel_grid = o3d.geometry.VoxelGrid()
+    colored_voxel_grid.voxel_size = vox_sz
+    colored_voxel_grid.origin = min_xyz
+    
+    # Add all original voxels with their colors
+    for voxel in original_voxel_grid.get_voxels():
+        new_voxel = o3d.geometry.Voxel()
+        new_voxel.grid_index = voxel.grid_index
+        new_voxel.color = voxel.color
+        colored_voxel_grid.add_voxel(new_voxel)
 
-    # Colors: buildings = brown/gray, water = blue
-    building_color = [0.6, 0.4, 0.2]  # Brown
+    # Water color
     water_color = [0.2, 0.6, 1.0]  # Blue
-
-    # Add building voxels
-    for i in range(occ.shape[0]):
-        for j in range(occ.shape[1]):
-            for k in range(occ.shape[2]):
-                if occ[i, j, k]:
-                    voxel = o3d.geometry.Voxel()
-                    voxel.grid_index = [i, j, k]
-                    voxel.color = building_color
-                    voxel_grid.add_voxel(voxel)
 
     # Add water voxels
     for i in range(water_voxels.shape[0]):
@@ -137,9 +134,9 @@ def create_colored_voxel_grid(occ, water_voxels, vox_sz, min_xyz):
                     voxel = o3d.geometry.Voxel()
                     voxel.grid_index = [i, j, k]
                     voxel.color = water_color
-                    voxel_grid.add_voxel(voxel)
+                    colored_voxel_grid.add_voxel(voxel)
 
-    return voxel_grid
+    return colored_voxel_grid
 
 
 # Main execution
@@ -180,7 +177,7 @@ water_voxels = extrude_water_to_voxels(water_depths, topography, occ, vox_sz, mi
 
 # Create colored output
 print("Creating colored voxel grid...")
-colored_voxel_grid = create_colored_voxel_grid(occ, water_voxels, vox_sz, min_xyz)
+colored_voxel_grid = create_colored_voxel_grid(vg, water_voxels, vox_sz, min_xyz)
 
 # Export results
 print("Exporting results...")
